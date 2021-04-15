@@ -4,6 +4,26 @@
         ReadData();
 
         $('#btnShow').click(function() {
+            var isDelete = $(this).text().includes('Delete');
+            var isNewRecord = $('#dataModalLabel').text().includes('New');
+            if (isDelete) // Delete Data.
+          {
+              $('#method').val('delete');
+              DataObjectRest('delete');
+    } else {
+        if (isNewRecord) // New Data.
+    {
+       DataObjectRest('new');
+    }
+     else // Edit Data.
+    {
+       $('#method').val('put');
+       DataObjectRest('update');
+    }
+ }
+});
+
+        $('#btnShow').click(function() {
             var boxType = $('#passcode').attr('type');
             if (boxType == 'password') {
                 $('#passcode').attr('type','text');  
@@ -96,11 +116,51 @@ function ViewData(_id) {
         success: function(data) {
 
             $('#email').val(data.email);
-
             $('#passcode').val(data.passcode);
+            $('#key').val(data.id);
 
         }
 
     });
 
+}
+
+function DataObjectRest(_dataAction) {
+    var formData = $('form').serializeArray();
+    console.log(formData);
+    if (_dataAction == 'delete') {
+        formData.splice(2,2); // remove "email" and "passcode" data
+        formData.push({name: 'table', value: 'usuario'});
+    } else if (_dataAction == 'new') {
+
+        formData.splice(0,2);
+    }
+    var jsonData = new Object();
+    formData.forEach(element => {
+        jsonData[ element.name ] = element.value;
+
+    });
+
+    console.log(jsonData);
+    console.log(JSON.stringify(jsonData));
+
+
+
+    $.ajax({
+
+        type: 'post',
+        dataType: "json",
+        url: 'jdastas-comp2850.000webhostapp.com/api.php/usuario',
+        data: JSON.stringify(jsonData),
+        success: function(data) {
+            $('#dataModal').modal('hide');
+            ReadData();
+
+        },
+        error: function(err) {
+            console.log('Error Message: ', err);
+
+        }
+
+    });
 }
